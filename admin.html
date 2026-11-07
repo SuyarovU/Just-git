@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="uz"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>InfoEdu — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800&display=swap" rel="stylesheet"><link rel="stylesheet" href="css/style.css"></head><body>
+<div class="top"><h1>InfoEdu — Admin paneli</h1><button class="btn o" onclick="logout()">Chiqish</button></div>
+<main id="v"></main><script src="js/three.min.js"></script><script src="js/app.js"></script><script src="js/avatar3d.js"></script><script>
+guard('admin');
+function price(kind,id,v){const d=db(),x=d[kind].find(i=>i.id==id);x.price=Math.max(0,+v||0);save(d);toast("Narx saqlandi")}
+function del(kind,id){if(!confirm("O'chirilsinmi?"))return;const d=db();d[kind]=d[kind].filter(i=>i.id!=id);
+d.users.forEach(u=>{if(u.owned){u.owned=u.owned.filter(x=>x!=id);for(const k in u.equip)if(u.equip[k]==id)u.equip[k]=k=='char'?'c1':null}});save(d);render()}
+function addChar(){const d=db(),n=$('#cn').value.trim();if(!n)return toast("Nom kiriting");d.chars.push({id:'c'+nid(),name:n,color:$('#cc').value,shape:$('#cs').value,price:+$('#cp').value||0});save(d);render()}
+function addItem(){const d=db(),n=$('#in').value.trim();if(!n)return toast("Nom kiriting");d.items.push({id:'i'+nid(),name:n,slot:$('#is').value,style:+$('#iy').value,color:$('#ic').value,price:+$('#ip').value||0});save(d);render()}
+function pts(id,v){const d=db();d.users.find(u=>u.id==id).points=Math.max(0,+v||0);save(d);toast("Saqlandi")}
+function addUser(){const d=db(),l=$('#ul').value.trim(),r=$('#ur').value;if(!l||!$('#up').value||d.users.some(u=>u.login==l))return toast("Login band yoki maydonlar bo'sh");
+const u={id:nid(),role:r,login:l,pass:$('#up').value,name:$('#un').value||l};if(r=='student')Object.assign(u,{cls:$('#uc').value||'7-A',points:0,owned:['c1'],equip:{char:'c1',hat:null,top:null,shoes:null}});
+d.users.push(u);save(d);render()}
+function render(){const d=db(),sel=(id,o)=>`<select id="${id}">${o.map(x=>`<option value="${x[0]}">${x[1]}</option>`).join('')}</select>`;
+const row=(k,x,pv)=>`<tr><td>${pv}</td><td>${esc(x.name)}</td><td style="width:110px"><input type="number" min="0" value="${x.price}" onchange="price('${k}','${x.id}',this.value)"></td><td>${x.id=='c1'?'':`<button class="btn r" onclick="del('${k}','${x.id}')">O'chirish</button>`}</td></tr>`;
+$('#v').innerHTML=`<div class="card"><h3 style="margin-top:0">Personajlar</h3><table>${d.chars.map(c=>row('chars',c,avatar(d,{char:c.id},60))).join('')}</table>
+<div class="row"><input id="cn" placeholder="Nomi">${sel('cs',[['robot','Robot'],['cat','Mushuk'],['bear','Ayiq'],['alien','Alien'],['monster','Shoxli monstr'],['cyclops','Bir ko\'z']])}<input id="cc" type="color" value="#ff8fb1"><input id="cp" type="number" placeholder="Narx (ball)"><button class="btn g" onclick="addChar()">Qo'shish</button></div></div>
+<div class="card"><h3 style="margin-top:0">Kiyimlar</h3><table>${d.items.map(i=>row('items',i,avatar(d,{char:'c1',[i.slot]:i.id},60))).join('')}</table>
+<div class="row"><input id="in" placeholder="Nomi">${sel('is',[['hat','Bosh kiyim'],['top','Kiyim'],['shoes','Oyoq kiyim']])}${sel('iy',[[1,'Uslub 1'],[2,'Uslub 2'],[3,'Uslub 3 (faqat bosh kiyim)']])}<input id="ic" type="color" value="#7e57c2"><input id="ip" type="number" placeholder="Narx (ball)"><button class="btn g" onclick="addItem()">Qo'shish</button></div></div>
+<div class="card"><h3 style="margin-top:0">Foydalanuvchilar</h3><table><tr><th>Ism</th><th>Login</th><th>Status</th><th>Sinf</th><th>Ball</th></tr>${d.users.map(u=>`<tr><td>${esc(u.name)}</td><td>${esc(u.login)}</td><td>${u.role}</td><td>${esc(u.cls||'')}</td><td>${u.role=='student'?`<input type="number" value="${u.points}" style="width:90px" onchange="pts(${u.id},this.value)">`:''}</td></tr>`).join('')}</table>
+<div class="row"><input id="un" placeholder="Ism"><input id="ul" placeholder="Login"><input id="up" placeholder="Parol">${sel('ur',[['student',"O'quvchi"],['teacher',"O'qituvchi"]])}<input id="uc" placeholder="Sinf"><button class="btn g" onclick="addUser()">Qo'shish</button></div></div>`}
+render();
+</script></body></html>
